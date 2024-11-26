@@ -8,6 +8,7 @@ import re
 import subprocess
 from .models import CSRF_user_tbl
 from django.views.decorators.csrf import csrf_exempt
+import ast
 # import os
 
 ## Mitre top1 | CWE:787
@@ -212,7 +213,16 @@ def csrf_transfer_monei_api(request,recipent,amount):
 def mitre_lab_25_api(request):
     if request.method == "POST":
         expression = request.POST.get('expression')
-        result = eval(expression)
+        try:
+            tree = ast.parse(expression, mode='eval')
+        except SyntaxError:
+            return JsonResponse({'result': None, 'error': 'Not an expression'})   # not a Python expression
+        if not all(isinstance(node, (ast.Expression,
+                ast.UnaryOp, ast.unaryop,
+                ast.BinOp, ast.operator,
+                ast.Num)) for node in ast.walk(tree)):
+            return JsonResponse({'result': None, 'error': 'Not an expression'})   # not a mathematical expression (numbers and operators)
+        result = eval(compile(tree, filename='', mode='eval'))
         return JsonResponse({'result': result})
     else:
         return redirect('/mitre/25/lab/')
