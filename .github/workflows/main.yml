@@ -37,7 +37,10 @@ jobs:
  dast_scan:
    name: ZAP Baseline Scan
    runs-on: ubuntu-latest
-   steps: 
+   steps:
+   - name: Checkout code
+     uses: actions/checkout@v2
+     
    - name: Set up Docker
      uses: docker-practice/actions-setup-docker@v1
      with:
